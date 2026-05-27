@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StarWords ✦ 抽盲盒</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">StarWords</a>
+  <div class="nav-links">
+    <a href="quiz.html" class="nav-link">📚 背單字</a>
+    <a href="gacha.html" class="nav-link active">🎁 抽盲盒</a>
+    <a href="profile.html" class="nav-link">🎴 卡冊</a>
+  </div>
+  <div class="nav-points">
+    <span style="color:var(--muted);font-size:.8rem">點數</span>
+    <span class="pts-badge">⭐ <span id="nav-points">0</span></span>
+  </div>
+</nav>
+
+<main>
+  <div id="gacha-section">
+    <div style="text-align:center;padding:2rem 1.5rem 0">
+      <div class="gacha-cost">每次抽取消耗 <span>3 點</span>｜機率：SSR 5% / SR 15% / R 35% / N 45%</div>
+    </div>
+
+    <div class="blind-box-wrap">
+      <div class="blind-box" id="blind-box" onclick="openBox()">
+        <div class="box-body">
+          <div class="box-top">
+            <svg class="box-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="5" width="190" height="90" rx="8" fill="#ede9fe" stroke="#9b6dff" stroke-width="1.5"/>
+              <rect x="25" y="20" width="150" height="60" rx="6" fill="#f5f3ff" stroke="rgba(155,109,255,.3)" stroke-width="1"/>
+              <text x="100" y="58" text-anchor="middle" font-size="32" fill="#9b6dff">✦</text>
+              <rect x="0" y="88" width="200" height="4" fill="#9b6dff" opacity=".5"/>
+            </svg>
+          </div>
+          <div class="box-bottom">
+            <svg class="box-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="5" width="190" height="90" rx="8" fill="#ede9fe" stroke="#9b6dff" stroke-width="1.5"/>
+              <text x="100" y="40" text-anchor="middle" font-size="12" fill="#8b7bb5" font-family="sans-serif">K-POP</text>
+              <text x="100" y="62" text-anchor="middle" font-size="12" fill="#8b7bb5" font-family="sans-serif">MYSTERY BOX</text>
+              <rect x="0" y="3" width="200" height="4" fill="#9b6dff" opacity=".5"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.5rem">點擊盒子或按下方按鈕抽取</p>
+      <button class="btn btn-primary" style="width:200px;margin:0 auto" onclick="openBox()">🎁 抽取小卡（3點）</button>
+    </div>
+
+    <div class="card-result" id="card-result">
+      <div class="idol-card" id="idol-card">
+        <!-- 照片區 -->
+        <div class="card-photo-wrap" id="photo-wrap">
+          <button class="card-photo-arrow prev" onclick="prevPhoto(event)">‹</button>
+          <button class="card-photo-arrow next" onclick="nextPhoto(event)">›</button>
+          <div class="card-photo-nav" id="photo-dots"></div>
+        </div>
+        <!-- 文字資訊 -->
+        <div class="idol-info">
+          <div class="idol-name" id="r-name">—</div>
+          <div class="idol-group" id="r-group">—</div>
+          <span class="rarity-tag" id="r-rarity">N</span>
+          <div class="idol-quote" id="r-quote">—</div>
+          <button class="btn btn-secondary" style="margin-top:1rem;width:100%;font-size:.85rem" onclick="resetBox()">再抽一次</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="gacha-history" id="gacha-history" style="display:none;padding:0 0 4rem">
+      <h3>抽取紀錄</h3>
+      <div class="history-grid" id="history-grid"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/state.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireLogin();
+
+const username = getUsername();
+let allCards = CARDS_LOCAL;
+let history = JSON.parse(localStorage.getItem('sw_history') || '[]');
+let isOpening = false;
+let currentPhotoIdx = 0;
+let currentCardId = null;
+
+function getPhotos(cardId) {
+  return [
+    `images/${cardId}_1.jpg`,
+    `images/${cardId}_2.jpg`,
+    `images/${cardId}_3.jpg`,
+  ];
+}
+
+function buildPhotoCarousel(cardId, emoji) {
+  currentCardId = cardId;
+  currentPhotoIdx = 0;
+  const wrap = document.getElementById('photo-wrap');
+
+  wrap.querySelectorAll('img, span.card-photo-emoji').forEach(el => el.remove());
+
+  const imgs = [1, 2, 3].map((n, i) => {
+    const img = document.createElement('img');
+    img.alt = '';
+    img.className = i === 0 ? 'active' : '';
+    setPhotoWithFallback(img, cardId, n, i === 0 ? emoji : null);
+    wrap.insertBefore(img, wrap.querySelector('.card-photo-arrow.prev'));
+    return img;
+  });
+
+  updateDots(3);
+}
+
+function updateDots(total) {
+  const dotsEl = document.getElementById('photo-dots');
+  dotsEl.innerHTML = Array.from({length: total}, (_, i) =>
+    `<div class="card-photo-dot${i === currentPhotoIdx ? ' active' : ''}" onclick="goToPhoto(${i})"></div>`
+  ).join('');
+}
+
+function goToPhoto(idx) {
+  const wrap = document.getElementById('photo-wrap');
+  const imgs = wrap.querySelectorAll('img');
+  if (!imgs.length) return;
+  imgs.forEach(img => img.classList.remove('active'));
+  const target = imgs[idx];
+  if (target) target.classList.add('active');
+  currentPhotoIdx = idx;
+  updateDots(imgs.length);
+}
+
+function prevPhoto(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('photo-wrap');
+  const imgs = Array.from(wrap.querySelectorAll('img')).filter(img => img.style.display !== 'none');
+  if (!imgs.length) return;
+  const idx = (currentPhotoIdx - 1 + imgs.length) % imgs.length;
+  goToPhoto(idx);
+}
+
+function nextPhoto(e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('photo-wrap');
+  const imgs = Array.from(wrap.querySelectorAll('img')).filter(img => img.style.display !== 'none');
+  if (!imgs.length) return;
+  const idx = (currentPhotoIdx + 1) % imgs.length;
+  goToPhoto(idx);
+}
+
+async function init() {
+  try {
+    const [cRes, uRes] = await Promise.all([
+      fetch(`${API}/cards/`),
+      fetchUser(username)
+    ]);
+    allCards = await cRes.json();
+    setNavPoints((await uRes).points ?? uRes.points);
+    const user = uRes;
+    setNavPoints(user.points);
+  } catch(e) {
+    showToast('請確認後端伺服器已啟動', 'error');
+  }
+  renderHistory();
+}
+
+async function openBox() {
+  if (isOpening) return;
+  const box = document.getElementById('blind-box');
+  if (box.classList.contains('open')) return;
+
+  isOpening = true;
+  try {
+    const res = await fetch(`${API}/user/${encodeURIComponent(username)}/gacha/`, {
+      method: 'POST'
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      showToast(err.error || '點數不足！繼續答題累積點數 📚', 'error');
+      isOpening = false;
+      return;
+    }
+    const card = await res.json();
+    setNavPoints(card.points);
+
+    history.unshift(card.card_id);
+    localStorage.setItem('sw_history', JSON.stringify(history.slice(0, 50)));
+
+    box.classList.add('open');
+    setTimeout(() => showCardResult(card), 700);
+    renderHistory();
+  } catch(e) {
+    showToast('連線失敗', 'error');
+    isOpening = false;
+  }
+}
+
+function showCardResult(card) {
+  const el = document.getElementById('card-result');
+  const ic = document.getElementById('idol-card');
+
+  document.getElementById('r-name').textContent = card.name;
+  document.getElementById('r-group').textContent = card.group;
+  document.getElementById('r-rarity').textContent = card.rarity;
+  document.getElementById('r-quote').textContent = `"${card.quote}"`;
+  ic.className = `idol-card rarity-${card.rarity}`;
+
+  buildPhotoCarousel(card.card_id, card.emoji);
+
+  el.classList.add('show');
+  showToast(`獲得 ${card.rarity} ${card.name}！`, 'info');
+  isOpening = false;
+}
+
+function resetBox() {
+  document.getElementById('blind-box').classList.remove('open');
+  document.getElementById('card-result').classList.remove('show');
+}
+
+function renderHistory() {
+  if (!history.length) return;
+  document.getElementById('gacha-history').style.display = 'block';
+  document.getElementById('history-grid').innerHTML = history.slice(0, 18).map(id => {
+    const c = allCards.find(x => (x.card_id || x.id) === id);
+    if (!c) return '';
+      return `<div class="mini-card">
+      <img src="images/${id}_1.jpg"
+        onerror="if(this.src.endsWith('.jpg')){this.src='images/${id}_1.png'}else{this.style.display='none';this.nextSibling.style.display='block'}"
+        style="display:block">
+      <span style="font-size:1.6rem;display:none">${c.emoji}</span>
+      <span>${c.name}</span>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

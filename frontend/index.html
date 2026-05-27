@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StarWords ✦ K-Pop 單字卡</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">StarWords</a>
+  <div></div>
+</nav>
+
+<main>
+  <div class="hero">
+    <div class="hero-tag">✦ Learn & Collect</div>
+    <h1>背單字<br><span>抽小卡</span></h1>
+    <p>答對單字累積點數，點數可以抽你最愛的韓國偶像小卡！</p>
+  </div>
+
+  <!-- 登入前 -->
+  <div id="login-section">
+    <div class="panel">
+      <h2 style="font-size:1.2rem;margin-bottom:1.5rem;text-align:center">輸入你的名稱開始遊戲</h2>
+      <input id="username-input" class="login-input" type="text" placeholder="例：StarFan123" maxlength="20" autocomplete="off">
+      <button class="btn btn-primary btn-full btn-lg" onclick="startGame()">開始 ✦</button>
+    </div>
+  </div>
+
+  <!-- 已登入 -->
+  <div id="welcome-section" style="display:none">
+    <div style="text-align:center;margin-bottom:2rem">
+      <div style="font-size:1.2rem;font-weight:700;margin-bottom:.5rem">歡迎回來，<span id="welcome-name" style="color:var(--accent)"></span>！</div>
+      <div style="font-size:.9rem;color:var(--muted)">你現在有 <span id="welcome-points" style="color:var(--gold);font-weight:700"></span> ⭐ 點</div>
+      <button onclick="logout()" style="margin-top:1rem;background:transparent;border:1px solid var(--border);color:var(--muted);padding:.4rem .9rem;border-radius:8px;cursor:pointer;font-size:.8rem">換帳號</button>
+    </div>
+    <div class="home-cards">
+      <a href="quiz.html" class="home-card">
+        <span class="home-card-icon">📚</span>
+        <div class="home-card-title">背單字</div>
+        <div class="home-card-desc">答題累積點數</div>
+      </a>
+      <a href="gacha.html" class="home-card">
+        <span class="home-card-icon">🎁</span>
+        <div class="home-card-title">抽盲盒</div>
+        <div class="home-card-desc">3點抽一張小卡</div>
+      </a>
+      <a href="profile.html" class="home-card" style="grid-column:1/-1">
+        <span class="home-card-icon">🎴</span>
+        <div class="home-card-title">我的卡冊</div>
+        <div class="home-card-desc">查看收集進度與統計</div>
+      </a>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/state.js"></script>
+<script>
+async function init() {
+  const username = getUsername();
+  if (username) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('welcome-section').style.display = 'block';
+    document.getElementById('welcome-name').textContent = username;
+    try {
+      const user = await fetchUser(username);
+      document.getElementById('welcome-points').textContent = user.points;
+    } catch(e) {
+      document.getElementById('welcome-points').textContent = '?';
+    }
+  }
+}
+
+async function startGame() {
+  const input = document.getElementById('username-input');
+  const name = input.value.trim();
+  if (!name) { showToast('請輸入名稱', 'error'); return; }
+  if (name.length < 2) { showToast('名稱至少 2 個字', 'error'); return; }
+
+  try {
+    await fetchUser(name);
+    setCookie('sw_username', name, 7);
+    location.reload();
+  } catch(e) {
+    showToast('無法連接伺服器，請確認後端已啟動', 'error');
+  }
+}
+
+function logout() {
+  setCookie('sw_username', '', -1);
+  location.reload();
+}
+
+document.getElementById('username-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
+
+init();
+</script>
+</body>
+</html>

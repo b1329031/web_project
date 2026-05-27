@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StarWords ✦ 我的卡冊</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">StarWords</a>
+  <div class="nav-links">
+    <a href="quiz.html" class="nav-link">📚 背單字</a>
+    <a href="gacha.html" class="nav-link">🎁 抽盲盒</a>
+    <a href="profile.html" class="nav-link active">🎴 卡冊</a>
+  </div>
+  <div class="nav-points">
+    <span style="color:var(--muted);font-size:.8rem">點數</span>
+    <span class="pts-badge">⭐ <span id="nav-points">0</span></span>
+  </div>
+</nav>
+
+<main>
+  <div id="profile-section">
+    <div style="text-align:center;padding:1.5rem 0 2rem">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto .75rem;box-shadow:0 4px 16px rgba(155,109,255,.3)">🌟</div>
+      <div style="font-size:1.3rem;font-weight:700" id="profile-name">—</div>
+      <div style="font-size:.85rem;color:var(--muted);margin-top:4px" id="profile-level">Lv.1 新手收藏家</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="st-points">0</div>
+        <div class="stat-label">⭐ 剩餘點數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="st-correct">0</div>
+        <div class="stat-label">✅ 答對次數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="st-wrong">0</div>
+        <div class="stat-label">❌ 答錯次數</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="st-acc">—</div>
+        <div class="stat-label">📊 正確率</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">收集進度</div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span id="coll-text">0 / 29 張</span>
+          <span id="coll-pct">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="coll-bar" style="width:0%"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;font-size:.75rem;text-align:center;color:var(--muted)">
+        <div><div style="color:var(--gold);font-weight:700;font-size:1.1rem" id="cnt-ssr">0</div>SSR</div>
+        <div><div style="color:var(--accent);font-weight:700;font-size:1.1rem" id="cnt-sr">0</div>SR</div>
+        <div><div style="color:var(--accent2);font-weight:700;font-size:1.1rem" id="cnt-r">0</div>R</div>
+        <div><div style="color:var(--muted);font-weight:700;font-size:1.1rem" id="cnt-n">0</div>N</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title" style="margin-bottom:1rem">我的小卡</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
+        <button class="btn btn-secondary" style="font-size:.8rem;padding:.4rem .8rem" onclick="filterCards('all')" id="f-all">全部</button>
+        <button class="btn btn-secondary" style="font-size:.8rem;padding:.4rem .8rem;color:var(--gold)" onclick="filterCards('SSR')" id="f-ssr">SSR</button>
+        <button class="btn btn-secondary" style="font-size:.8rem;padding:.4rem .8rem;color:var(--accent)" onclick="filterCards('SR')" id="f-sr">SR</button>
+        <button class="btn btn-secondary" style="font-size:.8rem;padding:.4rem .8rem;color:var(--accent2)" onclick="filterCards('R')" id="f-r">R</button>
+        <button class="btn btn-secondary" style="font-size:.8rem;padding:.4rem .8rem" onclick="filterCards('N')" id="f-n">N</button>
+        <button class="btn btn-secondary" style="font-size:.8rem;padding:.4rem .8rem;margin-left:auto;color:var(--green)" onclick="filterCards('owned')" id="f-owned">已收集</button>
+      </div>
+      <div class="collection-grid" id="collection-grid"></div>
+    </div>
+  </div>
+</main>
+
+<!-- 照片 Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-box">
+    <div class="card-photo-wrap" id="modal-photo-wrap" style="position:relative">
+      <button class="card-photo-arrow prev" onclick="modalPrev(event)">‹</button>
+      <button class="card-photo-arrow next" onclick="modalNext(event)">›</button>
+      <div class="card-photo-nav" id="modal-dots"></div>
+    </div>
+    <div class="idol-info" style="padding:1rem 1.25rem 1.25rem">
+      <div class="idol-name" id="modal-name"></div>
+      <div class="idol-group" id="modal-group" style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem"></div>
+      <span class="rarity-tag" id="modal-rarity"></span>
+      <div class="idol-quote" id="modal-quote"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/state.js"></script>
+<script src="js/data.js"></script>
+<script>
+requireLogin();
+
+const username = getUsername();
+let allCards = CARDS_LOCAL;
+let myCollection = [];
+let currentFilter = 'all';
+let modalPhotoIdx = 0;
+let modalCardId = null;
+
+const LEVELS = [
+  [0,'Lv.1 新手收藏家'],[5,'Lv.2 初級粉絲'],
+  [10,'Lv.3 資深粉絲'],[20,'Lv.4 頂級粉絲'],[29,'Lv.5 完美收藏家'],
+];
+function getLevel(n) {
+  let lv = LEVELS[0][1];
+  for (const [th, label] of LEVELS) if (n >= th) lv = label;
+  return lv;
+}
+
+const rarityColor = { SSR:'var(--gold)', SR:'var(--accent)', R:'var(--accent2)', N:'var(--muted)' };
+
+async function init() {
+  document.getElementById('profile-name').textContent = username;
+  try {
+    const [cRes, uRes] = await Promise.all([fetch(`${API}/cards/`), fetchUser(username)]);
+    allCards = await cRes.json();
+    const user = uRes;
+    myCollection = user.collection || [];
+    setNavPoints(user.points);
+    document.getElementById('st-points').textContent = user.points;
+    document.getElementById('st-correct').textContent = user.correct;
+    document.getElementById('st-wrong').textContent = user.wrong;
+    const tot = user.correct + user.wrong;
+    document.getElementById('st-acc').textContent = tot > 0 ? Math.round(user.correct/tot*100)+'%' : '—';
+    document.getElementById('profile-level').textContent = getLevel(myCollection.length);
+    const have = myCollection.length, total = allCards.length;
+    const pct = total > 0 ? Math.round(have/total*100) : 0;
+    document.getElementById('coll-text').textContent = `${have} / ${total} 張`;
+    document.getElementById('coll-pct').textContent = `${pct}%`;
+    document.getElementById('coll-bar').style.width = pct + '%';
+    for (const r of ['SSR','SR','R','N']) {
+      const cnt = allCards.filter(c => c.rarity===r && myCollection.includes(c.card_id)).length;
+      document.getElementById(`cnt-${r.toLowerCase()}`).textContent = cnt;
+    }
+    renderCards();
+  } catch(e) {
+    showToast('請確認後端伺服器已啟動', 'error');
+    renderCards();
+  }
+}
+
+function filterCards(type) {
+  currentFilter = type;
+  ['all','ssr','sr','r','n','owned'].forEach(id => {
+    document.getElementById(`f-${id}`)?.classList.remove('btn-primary');
+  });
+  const key = {SSR:'ssr',SR:'sr',R:'r',N:'n'}[type] || type;
+  document.getElementById(`f-${key}`)?.classList.add('btn-primary');
+  renderCards();
+}
+
+function renderCards() {
+  let cards = allCards;
+  if (currentFilter === 'owned') cards = allCards.filter(c => myCollection.includes(c.card_id));
+  else if (['SSR','SR','R','N'].includes(currentFilter)) cards = allCards.filter(c => c.rarity===currentFilter);
+
+  document.getElementById('collection-grid').innerHTML = cards.map(card => {
+    const owned = myCollection.includes(card.card_id);
+    const click = owned ? `onclick="openModal('${card.card_id}')"` : '';
+    return `<div class="coll-card${owned ? '' : ' locked'}" ${click} title="${owned ? card.name : '???'}">
+      <img class="c-photo" src="${owned ? `images/${card.card_id}_1.jpg` : ''}"
+        onerror="if(this.src.endsWith('.jpg')){this.src='images/${card.card_id}_1.png'}else{this.style.display='none';this.nextElementSibling.style.display='block'}"
+        style="${owned ? '' : 'display:none'}">
+      <span class="c-emoji-wrap" style="${owned ? 'display:none' : ''}">${owned ? card.emoji : '❓'}</span>
+      <div class="c-info">
+        <div class="c-name">${owned ? card.name : '???'}</div>
+        <div class="c-rarity" style="color:${rarityColor[card.rarity]}">${card.rarity}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Modal
+function openModal(cardId) {
+  const card = allCards.find(c => c.card_id === cardId);
+  if (!card) return;
+  modalCardId = cardId;
+  modalPhotoIdx = 0;
+  document.getElementById('modal-name').textContent = card.name;
+  document.getElementById('modal-group').textContent = card.group;
+  document.getElementById('modal-rarity').textContent = card.rarity;
+  document.getElementById('modal-rarity').className = `rarity-tag`;
+  document.getElementById('modal-quote').textContent = `"${card.quote}"`;
+  document.getElementById('modal-box').className = `modal-box rarity-${card.rarity}`;
+
+  buildModalPhotos(cardId, card.emoji);
+  document.getElementById('modal').classList.add('show');
+}
+
+function buildModalPhotos(cardId, emoji) {
+  const wrap = document.getElementById('modal-photo-wrap');
+  wrap.querySelectorAll('img, span.card-photo-emoji').forEach(el => el.remove());
+
+  [1, 2, 3].forEach((n, i) => {
+    const img = document.createElement('img');
+    img.alt = '';
+    img.className = i === 0 ? 'active' : '';
+    img.onload = () => updateModalDots();
+    setPhotoWithFallback(img, cardId, n, i === 0 ? emoji : null);
+    wrap.insertBefore(img, wrap.querySelector('.card-photo-arrow.prev'));
+  });
+}
+
+function updateModalDots() {
+  const wrap = document.getElementById('modal-photo-wrap');
+  const imgs = Array.from(wrap.querySelectorAll('img')).filter(img => img.style.display !== 'none');
+  document.getElementById('modal-dots').innerHTML = imgs.map((_, i) =>
+    `<div class="card-photo-dot${i===modalPhotoIdx?' active':''}" onclick="goModalPhoto(${i})"></div>`
+  ).join('');
+}
+
+function goModalPhoto(idx) {
+  const wrap = document.getElementById('modal-photo-wrap');
+  const imgs = Array.from(wrap.querySelectorAll('img')).filter(img => img.style.display !== 'none');
+  imgs.forEach(img => img.classList.remove('active'));
+  if (imgs[idx]) imgs[idx].classList.add('active');
+  modalPhotoIdx = idx;
+  updateModalDots();
+}
+
+function modalPrev(e) { e.stopPropagation(); const wrap = document.getElementById('modal-photo-wrap'); const imgs = Array.from(wrap.querySelectorAll('img')).filter(img=>img.style.display!=='none'); if(!imgs.length)return; goModalPhoto((modalPhotoIdx-1+imgs.length)%imgs.length); }
+function modalNext(e) { e.stopPropagation(); const wrap = document.getElementById('modal-photo-wrap'); const imgs = Array.from(wrap.querySelectorAll('img')).filter(img=>img.style.display!=='none'); if(!imgs.length)return; goModalPhoto((modalPhotoIdx+1)%imgs.length); }
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) {
+    document.getElementById('modal').classList.remove('show');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
