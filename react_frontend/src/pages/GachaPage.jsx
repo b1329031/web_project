@@ -119,7 +119,14 @@ export default function GachaPage() {
               <div className="gacha-cards-row">
                 {drawnCards.slice(0, visibleCount).map((card, i) => (
                   <div key={i} className={`gacha-result-card ${card.rarity}`}>
-                    <div className="card-emoji">{card.emoji}</div>
+                    <div className="card-photo-slot">
+                      <img
+                        src={`/images/${card.card_id}_${i + 1}.jpg`}
+                        alt={card.name}
+                        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                      />
+                      <span className="card-emoji-fallback" style={{ display: 'none' }}>{card.emoji}</span>
+                    </div>
                     <div className="card-name">{card.name}</div>
                     <div className="card-group">{card.group}</div>
                     <div className="card-rarity-badge">{card.rarity}</div>
