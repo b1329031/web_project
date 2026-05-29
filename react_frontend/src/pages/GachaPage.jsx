@@ -26,6 +26,7 @@ export default function GachaPage() {
 
   const [phase, setPhase] = useState('idle'); // idle | flash | dark | rarity | cards | result
   const [drawnCards, setDrawnCards] = useState([]);
+  const [drawnPhotos, setDrawnPhotos] = useState([]);
   const [visibleCount, setVisibleCount] = useState(0);
   const [topRarity, setTopRarity] = useState('N');
   const [toast, setToast] = useState({ message: '', type: '' });
@@ -70,6 +71,14 @@ export default function GachaPage() {
       setNavPoints(data.points);
       setDrawnCards(data.cards);
       setTopRarity(bestRarityOf(data.cards));
+
+      const card0 = data.cards[0];
+      if (card0.group === 'IU') {
+        const nums = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3);
+        setDrawnPhotos(nums.map(n => `/images/iu${n}_1.jpg`));
+      } else {
+        setDrawnPhotos(data.cards.map((card, i) => `/images/${card.card_id}_${i + 1}.jpg`));
+      }
 
       const newHistory = [...data.cards.map(c => c.card_id), ...history].slice(0, 60);
       setHistory(newHistory);
@@ -121,7 +130,7 @@ export default function GachaPage() {
                   <div key={i} className={`gacha-result-card ${card.rarity}`}>
                     <div className="card-photo-slot">
                       <img
-                        src={`/images/${card.card_id}_${i + 1}.jpg`}
+                        src={drawnPhotos[i] || `/images/${card.card_id}_${i + 1}.jpg`}
                         alt={card.name}
                         onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
                       />
