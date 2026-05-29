@@ -208,10 +208,13 @@ export default function GachaPage() {
                 {history.slice(0, 18).map((id, idx) => {
                   const c = allCards.find(x => x.card_id === id);
                   if (!c) return null;
+                  const photoSrc = c.group === 'IU'
+                    ? `/images/iu${(idx % 5) + 1}_1.jpg`
+                    : `/images/${id}_${(idx % 3) + 1}.jpg`;
                   return (
                     <div key={idx} className="mini-card">
                       <img
-                        src={`/images/${id}_1.jpg`}
+                        src={photoSrc}
                         alt={c.name}
                         onError={e => { e.target.style.display = 'none'; }}
                       />
