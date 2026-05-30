@@ -81,14 +81,7 @@ export default function GachaPage() {
       setDrawnCards(data.cards);
       setTopRarity(bestRarityOf(data.cards));
 
-      // 朋友新寫的：IU 特別照片隨機抽卡邏輯與一般偶像相片綁定
-      const card0 = data.cards[0];
-      if (card0 && card0.group === 'IU') {
-        const nums = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3);
-        setDrawnPhotos(nums.map(n => `/images/iu${n}_1.jpg`));
-      } else {
-        setDrawnPhotos(data.cards.map((card, i) => `/images/${card.card_id}_${i + 1}.jpg`));
-      }
+      setDrawnPhotos(data.cards.map((card, i) => `/images/${card.card_id}_${i + 1}.jpg`));
 
       const newHistory = [...data.cards.map(c => c.card_id), ...history].slice(0, 60);
       setHistory(newHistory);
@@ -267,10 +260,7 @@ export default function GachaPage() {
                   const c = allCards.find(x => x.card_id === id);
                   if (!c) return null;
                   
-                  // 朋友新寫的：抽取紀錄改為正確對應隨機相片路徑
-                  const photoSrc = c.group === 'IU'
-                    ? `/images/iu${(idx % 5) + 1}_1.jpg`
-                    : `/images/${id}_${(idx % 3) + 1}.jpg`;
+                  const photoSrc = `/images/${id}_${(idx % 3) + 1}.jpg`;
                   
                   return (
                     <div key={idx} className="mini-card">
