@@ -268,7 +268,12 @@ export default function GachaPage() {
                   const c = allCards.find(x => x.card_id === id);
                   if (!c) return null;
                   
-                  const photoSrc = `/images/${id}_${(idx % 3) + 1}.jpg`;
+                  const iuPool = c.group === 'IU'
+                    ? (c.rarity === 'SSR' ? ['iu1','iu2','iu3'] : ['iu4','iu5','iu6'])
+                    : null;
+                  const photoSrc = iuPool
+                    ? `/images/${iuPool[idx % 3]}_1.jpg`
+                    : `/images/${id}_${(idx % 3) + 1}.jpg`;
                   
                   return (
                     <div key={idx} className="mini-card">
