@@ -21,6 +21,7 @@ export default function ProfilePage() {
   const toastTimer = useRef(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!username) { navigate('/'); return; }
     Promise.all([fetch(`${API}/cards/`), fetchUser(username)])
       .then(async ([cRes, u]) => {

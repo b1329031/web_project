@@ -26,7 +26,7 @@ export default function GachaPage() {
 
   const [phase, setPhase] = useState('idle'); // idle | flash | dark | rarity | cards | result
   const [drawnCards, setDrawnCards] = useState([]);
-  const [drawnPhotos, setDrawnPhotos] = useState([]);
+  const [drawnPhotos, setDrawnPhotos] = useState([]); // 朋友新增：儲存抽到的偶像圖片路徑
   const [visibleCount, setVisibleCount] = useState(0);
   const [topRarity, setTopRarity] = useState('N');
   const [toast, setToast] = useState({ message: '', type: '' });
@@ -34,7 +34,16 @@ export default function GachaPage() {
   const toastTimer = useRef(null);
   const timers = useRef([]);
 
+  // 🎵 你新增的音效控制器 Ref
+  const audioOpen = useRef(null);
+  const audioReveal = useRef(null);
+
   useEffect(() => {
+    window.scrollTo(0, 0);
+    // 初始化音效對象
+    audioOpen.current = new Audio('/gacha_open.mp3');
+    audioReveal.current = new Audio('/gacha_reveal.mp3');
+
     if (!username) { navigate('/'); return; }
     Promise.all([fetch(`${API}/cards/`), fetchUser(username)])
       .then(async ([cRes, user]) => {
@@ -72,8 +81,9 @@ export default function GachaPage() {
       setDrawnCards(data.cards);
       setTopRarity(bestRarityOf(data.cards));
 
+      // 朋友新寫的：IU 特別照片隨機抽卡邏輯與一般偶像相片綁定
       const card0 = data.cards[0];
-      if (card0.group === 'IU') {
+      if (card0 && card0.group === 'IU') {
         const nums = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3);
         setDrawnPhotos(nums.map(n => `/images/iu${n}_1.jpg`));
       } else {
@@ -88,8 +98,31 @@ export default function GachaPage() {
       timers.current = [];
 
       setPhase('flash');
-      schedule(() => setPhase('dark'), 1200);
-      schedule(() => setPhase('rarity'), 1800);
+      
+      // 🎵 播放開包爆發音效（點擊時立刻放，模擬撕開包裝紙的聲音）
+      if (audioOpen.current) {
+        audioOpen.current.currentTime = 0;
+        audioOpen.current.play().catch(() => {});
+      }
+
+      /* 🔍 【分鏡時間軸微調】
+         0.0s ~ 1.5s: 純卡包慢動作分離
+         0.8s ~ 3.5s: 降臨強光與極光爆發演出
+         3.5s: 進入暗場
+         4.0s: 秀出 SSR/SR 等級大字
+         5.5s: 依序翻開小卡
+      */
+      
+      schedule(() => setPhase('dark'), 2200); // 讓極光多燃燒一會兒 (原為 3200)
+      
+      schedule(() => {
+        setPhase('rarity');
+        if (audioReveal.current) {
+          audioReveal.current.currentTime = 0;
+          audioReveal.current.play().catch(() => {});
+        }
+      }, 2700); // 等級揭曉往後順延 (原為 3700)
+
       schedule(() => {
         setPhase('cards');
         setVisibleCount(0);
@@ -97,7 +130,8 @@ export default function GachaPage() {
         schedule(() => setVisibleCount(2), 850);
         schedule(() => setVisibleCount(3), 1550);
         schedule(() => setPhase('result'), 2400);
-      }, 3200);
+      }, 4200); // 最終秀卡網後順延 (原為 5200)
+
     } catch {
       showToast('連線失敗', 'error');
     }
@@ -119,22 +153,44 @@ export default function GachaPage() {
 
       {showOverlay && (
         <div className={`gacha-overlay phase-${phase}`}>
-          {phase === 'rarity' && (
-            <div className={`gacha-rarity-text ${topRarity}`}>{topRarity}</div>
+          {/* ✨ 你寫的粉紫極光與白色璀璨光芒四散效果 */}
+          {phase === 'flash' && (
+            <div className="magic-ray-container">
+              <div className="center-white-core"></div>
+              <div className="aurora-wave aw1"></div>
+              <div className="aurora-wave aw2"></div>
+              <div className="gacha-light-ray r1"></div>
+              <div className="gacha-light-ray r2"></div>
+              <div className="gacha-light-ray r3"></div>
+              <div className="gacha-light-ray r4"></div>
+            </div>
           )}
+
+          {phase === 'rarity' && (
+            <div className={`gacha-rarity-text ${topRarity} bling-bling-${topRarity.toLowerCase()}`}>
+              {topRarity}
+            </div>
+          )}
+
           {(phase === 'cards' || phase === 'result') && (
             <>
-              <div className={`gacha-top-rarity ${topRarity}`}>{topRarity}</div>
-              <div className="gacha-cards-row">
+              <div className={`gacha-top-rarity ${topRarity} bling-bling-${topRarity.toLowerCase()}`}>{topRarity}</div>
+              
+              {/* 融合你改的大尺寸樣式 `dynamic-cards-view` 與朋友的相片卡牌 HTML */}
+              <div className="gacha-cards-row dynamic-cards-view">
                 {drawnCards.slice(0, visibleCount).map((card, i) => (
-                  <div key={i} className={`gacha-result-card ${card.rarity}`}>
-                    <div className="card-photo-slot">
+                  <div key={i} className={`gacha-result-card ${card.rarity} large-result-card`}>
+                    <div className="card-photo-slot" style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginBottom: '10px' }}>
                       <img
                         src={drawnPhotos[i] || `/images/${card.card_id}_${i + 1}.jpg`}
                         alt={card.name}
-                        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { 
+                          e.target.style.display = 'none'; 
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = 'block'; 
+                        }}
                       />
-                      <span className="card-emoji-fallback" style={{ display: 'none' }}>{card.emoji}</span>
+                      <span className="card-emoji-fallback" style={{ display: 'none', fontSize: '3rem', padding: '1rem 0' }}>{card.emoji}</span>
                     </div>
                     <div className="card-name">{card.name}</div>
                     <div className="card-group">{card.group}</div>
@@ -142,8 +198,9 @@ export default function GachaPage() {
                   </div>
                 ))}
               </div>
+
               {phase === 'result' && (
-                <button className="gacha-confirm-btn" onClick={confirmCards}>
+                <button className="gacha-confirm-btn enhanced-confirm-btn" onClick={confirmCards}>
                   收入至卡冊 ✦
                 </button>
               )}
@@ -160,27 +217,28 @@ export default function GachaPage() {
             </div>
           </div>
 
-          <div className="blind-box-wrap">
+          {/* 套用你寫的修長型長方形卡包 HTML 與動畫類名 */}
+          <div className="blind-box-wrap enhanced-pack-wrap">
             <div
-              className="blind-box"
+              className={`blind-box custom-slitted-pack ${phase !== 'idle' ? 'is-opening' : ''}`}
               onClick={drawCards}
               style={{ cursor: phase === 'idle' ? 'pointer' : 'default' }}
             >
               <div className="box-body">
-                <div className="box-top">
-                  <svg className="box-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="5" width="190" height="90" rx="8" fill="#ede9fe" stroke="#9b6dff" strokeWidth="1.5"/>
-                    <rect x="25" y="20" width="150" height="60" rx="6" fill="#f5f3ff" stroke="rgba(155,109,255,.3)" strokeWidth="1"/>
-                    <text x="100" y="58" textAnchor="middle" fontSize="32" fill="#9b6dff">✦</text>
-                    <rect x="0" y="88" width="200" height="4" fill="#9b6dff" opacity=".5"/>
+                <div className="box-top slitted-top">
+                  <svg className="box-svg" viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="190" height="120" rx="10" fill="#fcfaff" stroke="#9b6dff" strokeWidth="2"/>
+                    <rect x="25" y="25" width="150" height="80" rx="8" fill="#f5f3ff" stroke="rgba(155,109,255,.35)" strokeWidth="1.5"/>
+                    <text x="100" y="75" textAnchor="middle" fontSize="40" fill="#9b6dff">✦</text>
+                    <rect x="0" y="125" width="200" height="5" fill="#9b6dff" opacity=".6"/>
                   </svg>
                 </div>
-                <div className="box-bottom">
-                  <svg className="box-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="5" width="190" height="90" rx="8" fill="#ede9fe" stroke="#9b6dff" strokeWidth="1.5"/>
-                    <text x="100" y="40" textAnchor="middle" fontSize="12" fill="#8b7bb5" fontFamily="sans-serif">K-POP</text>
-                    <text x="100" y="62" textAnchor="middle" fontSize="12" fill="#8b7bb5" fontFamily="sans-serif">MYSTERY BOX</text>
-                    <rect x="0" y="3" width="200" height="4" fill="#9b6dff" opacity=".5"/>
+                <div className="box-bottom slitted-bottom">
+                  <svg className="box-svg" viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="190" height="120" rx="10" fill="#fcfaff" stroke="#9b6dff" strokeWidth="2"/>
+                    <text x="100" y="55" textAnchor="middle" fontSize="14" fill="#8b7bb5" fontWeight="bold" fontFamily="sans-serif">K-POP</text>
+                    <text x="100" y="80" textAnchor="middle" fontSize="14" fill="#8b7bb5" fontWeight="bold" fontFamily="sans-serif">MYSTERY BOX</text>
+                    <rect x="0" y="0" width="200" height="5" fill="#9b6dff" opacity=".6"/>
                   </svg>
                 </div>
               </div>
@@ -193,7 +251,7 @@ export default function GachaPage() {
             </p>
             <button
               className="btn btn-primary"
-              style={{ width: '220px', margin: '0 auto' }}
+              style={{ width: '220px', margin: '0 auto', fontWeight: 'bold' }}
               onClick={drawCards}
               disabled={phase !== 'idle'}
             >
@@ -208,9 +266,12 @@ export default function GachaPage() {
                 {history.slice(0, 18).map((id, idx) => {
                   const c = allCards.find(x => x.card_id === id);
                   if (!c) return null;
+                  
+                  // 朋友新寫的：抽取紀錄改為正確對應隨機相片路徑
                   const photoSrc = c.group === 'IU'
                     ? `/images/iu${(idx % 5) + 1}_1.jpg`
-                    : `/images/${id}_${(idx % 3) + 1}.jpg`;
+                    : `/images/${id}_(idx % 3) + 1}.jpg`;
+                  
                   return (
                     <div key={idx} className="mini-card">
                       <img
