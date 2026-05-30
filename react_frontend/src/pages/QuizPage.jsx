@@ -300,11 +300,6 @@ export default function QuizPage() {
             )}
 
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', fontSize: '.85rem', color: 'var(--muted)' }}>
-            <span>答對 <b style={{ color: 'var(--green)' }}>{totalCorrect}</b></span>
-            <span>答錯 <b style={{ color: 'var(--red)' }}>{totalWrong}</b></span>
-            <span>已解鎖 <b style={{ color: 'var(--accent)' }}>{answeredSet.size}</b> 個</span>
-          </div>
         </div>
       </main>
       <Toast message={toast.message} type={toast.type} />
