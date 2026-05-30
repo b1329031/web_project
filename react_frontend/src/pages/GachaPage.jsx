@@ -270,7 +270,7 @@ export default function GachaPage() {
                   // 朋友新寫的：抽取紀錄改為正確對應隨機相片路徑
                   const photoSrc = c.group === 'IU'
                     ? `/images/iu${(idx % 5) + 1}_1.jpg`
-                    : `/images/${id}_(idx % 3) + 1}.jpg`;
+                    : `/images/${id}_${(idx % 3) + 1}.jpg`;
                   
                   return (
                     <div key={idx} className="mini-card">
