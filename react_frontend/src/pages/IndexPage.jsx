@@ -37,7 +37,7 @@ export default function IndexPage() {
       }
       if (!res.ok) throw new Error();
       
-      setCookie('sw_username', name, 7);
+      setCookie('sw_username', name, 3650);
       setUsername(name);
       showToast(`歡迎回來，${name}！`, 'success');
     } catch {
@@ -61,7 +61,7 @@ export default function IndexPage() {
       // 如果後端回傳 404 代表沒人使用，可以安全創建
       if (res.status === 404) {
         // 呼叫後端創建用戶的 API (通常直接 fetchUser 或 POST 創建，這裡沿用原本的登入進去創建邏輯)
-        setCookie('sw_username', name, 7);
+        setCookie('sw_username', name, 3650);
         setUsername(name);
         showToast(`成功建立全新帳號：${name}！✦`, 'success');
       }
