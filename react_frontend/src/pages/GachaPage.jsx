@@ -81,7 +81,15 @@ export default function GachaPage() {
       setDrawnCards(data.cards);
       setTopRarity(bestRarityOf(data.cards));
 
-      setDrawnPhotos(data.cards.map((card, i) => `/images/${card.card_id}_${i + 1}.jpg`));
+      const card0 = data.cards[0];
+      if (card0.group === 'IU') {
+        const iuPhotos = card0.rarity === 'SSR'
+          ? ['/images/iu1_1.jpg', '/images/iu2_1.jpg', '/images/iu3_1.jpg']
+          : ['/images/iu4_1.jpg', '/images/iu5_1.jpg', '/images/iu6_1.jpg'];
+        setDrawnPhotos(iuPhotos);
+      } else {
+        setDrawnPhotos(data.cards.map((card, i) => `/images/${card.card_id}_${i + 1}.jpg`));
+      }
 
       const newHistory = [...data.cards.map(c => c.card_id), ...history].slice(0, 60);
       setHistory(newHistory);
