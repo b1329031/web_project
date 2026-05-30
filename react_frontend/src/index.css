@@ -404,6 +404,9 @@ main { padding-top:80px; position:relative; z-index:1; }
 
 /* 讓開包過渡期更加具有神秘與沉浸感 */
 .gacha-overlay.phase-flash,
+.gacha-overlay.phase-flash {
+  animation:gacha-bw-flash 0.22s steps(1) infinite;
+}
 .gacha-overlay.phase-dark,
 .gacha-overlay.phase-rarity,
 .gacha-overlay.phase-cards,
@@ -520,72 +523,530 @@ main { padding-top:80px; position:relative; z-index:1; }
     radial-gradient(ellipse 40% 80% at 30% 0%, rgba(155,109,255,.35) 0%, transparent 100%),
     radial-gradient(ellipse 40% 80% at 70% 0%, rgba(244,114,182,.35) 0%, transparent 100%),
     #05050b;
-  animation:spotlight-in 0.45s ease forwards;
+  animation: spotlight-in 0.45s ease forwards;
 }
 
+/* 完美放大版的確認按鈕 */
+.gacha-confirm-btn {
+  margin-top: 3.5rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; 
+  border: none; 
+  border-radius: 30px;
+  padding: 1rem 3.5rem; 
+  font-size: 1.2rem; 
+  font-weight: 700;
+  cursor: pointer; 
+  letter-spacing: 2px;
+  box-shadow: 0 6px 28px rgba(155, 109, 255, .5);
+  transition: transform .15s, box-shadow .15s;
+}
+
+/* 按鈕懸浮時的華麗動態放大效果 */
+.gacha-confirm-btn:hover { 
+  transform: translateY(-3px) scale(1.03); 
+  box-shadow: 0 10px 35px rgba(155, 109, 255, .65); 
+}
+/* ==========================================================================
+   ✨ 抽卡結果與小卡格式完美修復樣式 ✨
+   ========================================================================== */
+
+/* 1. 控制大字等級（SSR/SR/R/N）跳出來的震撼大字樣式 */
 .gacha-rarity-text {
-  font-size: 11rem; 
-  font-weight:900; letter-spacing:8px;
-  animation:rarity-pop 0.75s cubic-bezier(.34,1.56,.64,1) forwards;
+  font-size: 8rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px var(--accent);
+  transform: scale(0);
+  animation: rarity-pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  z-index: 999;
 }
 
-.gacha-rarity-text.SSR, .gacha-top-rarity.SSR { color:#ffd700; text-shadow:0 0 25px #fff, 0 0 50px rgba(255,215,0,.8), 0 0 100px rgba(255,215,0,.5); animation: blingAnimation 0.6s infinite alternate ease-in-out; }
-.gacha-rarity-text.SR, .gacha-top-rarity.SR  { color:#c084fc; text-shadow:0 0 20px #fff, 0 0 40px rgba(192,132,252,.8), 0 0 70px rgba(192,132,252,.4); animation: blingAnimation 0.7s infinite alternate ease-in-out; }
-.gacha-rarity-text.R, .gacha-top-rarity.R   { color:#60a5fa; text-shadow:0 0 20px rgba(96,165,250,.8); animation: blingAnimation 0.8s infinite alternate ease-in-out; }
-.gacha-rarity-text.N, .gacha-top-rarity.N   { color:#9ca3af; text-shadow:0 0 15px rgba(156,163,175,.5); }
-
-@keyframes blingAnimation {
-  0% { transform: scale(0.94); filter: brightness(0.9); }
-  100% { transform: scale(1.08); filter: brightness(1.4); }
+@keyframes rarity-pop-in {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
+/* 2. 抽卡結果最上方固定顯示的等級字樣 */
 .gacha-top-rarity {
-  font-size: 2.5rem; 
-  font-weight:900; letter-spacing:6px;
-  margin-bottom: 2rem;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 20px rgba(155, 109, 255, 0.6);
+  animation: fadeInDown 0.5s ease both;
 }
 
-.gacha-cards-row {
-  display:flex; gap: 2.5rem; justify-content:center; flex-wrap:wrap; margin-top: 1rem;
+/* 3. 卡片橫排容器：確保三張小卡乖乖橫著排，不會垂直塞爆 */
+.dynamic-cards-view {
+  display: block !important; /* 強制覆蓋 flex 避免排版壞掉 */
+  text-align: center;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 }
-.gacha-result-card {
-  background:rgba(255,255,255,.08); border:2.5px solid;
-  border-radius:24px; 
-  padding: 2rem 1.2rem;
-  width: 230px; 
-  min-height: 340px;
-  text-align:center;
+
+/* 4. 精緻小卡格式：限制卡片大小，解決卡片太大張的問題！ */
+.large-result-card {
+  display: inline-block;
+  width: 220px;       /* 🔍 嚴格限制小卡寬度 */
+  height: 340px;      /* 🔍 嚴格限制小卡高度 */
+  margin: 0 15px;
+  background: rgba(20, 20, 35, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+  vertical-align: top;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  transform: translateY(50px);
+  opacity: 0;
+  animation: card-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes card-slide-up {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 5. 卡片內的照片外框：確保圖片完美填滿、不變形、不溢出 */
+.large-result-card .card-photo-slot {
+  width: 100%;
+  height: 230px;      /* 🔍 限制偶像相片的高度 */
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111;
+  margin-bottom: 12px;
+}
+
+.large-result-card .card-photo-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* 🔍 縮放圖片以完美填滿格子 */
+}
+
+/* 6. 卡片文字資訊（名字、群組、標籤）*/
+.large-result-card .card-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.large-result-card .card-group {
+  font-size: 0.85rem;
+  color: #b0a8db;
+  margin-bottom: 8px;
+}
+
+.large-result-card .card-rarity-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 20px;
+  background: var(--accent);
+  color: #fff;
+}
+
+/* 各等級卡牌的璀璨邊框特效 */
+.large-result-card.SSR { border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+.large-result-card.SR { border-color: #ff77ff; box-shadow: 0 0 15px rgba(255, 119, 255, 0.25); }
+.large-result-card.R { border-color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.2); }
+
+/* 7. 修復最後面的「收入至卡冊」確認按鈕 */
+.enhanced-confirm-btn {
+  display: block !important;
+  margin: 2.5rem auto 0 !important;
+  background: linear-gradient(135deg, #9b6dff, #f472b6) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 30px !important;
+  padding: 0.8rem 3rem !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-shadow: 0 6px 25px rgba(155, 109, 255, 0.5) !important;
+  animation: fadeInUp 0.4s ease both;
+}
+
+.enhanced-confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(155, 109, 255, 0.7) !important;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ==========================================================================
+   STARWORDS 扇形弧線大標題 & 3+1 大廳排版優化 CSS
+   ========================================================================== */
+.arc-title-wrap {
+  width: 100%;
+  max-width: 620px; /* 🔍 稍微再拓寬，配合變大的字體 */
+  margin: 4.5rem auto 0.5rem !important; 
+  text-align: center;
+  position: relative;
+  height: 150px; /* 🔍 微微拉高容器高度 */
+}
+
+.arc-title-svg {
+  width: 100%;
+  height: 140px; 
+  overflow: visible;
+}
+
+/* 🔍 字體極致震撼放大（從 74px 暴增到 84px！完美的環抱感浮現） */
+.arc-title-svg text {
+  fill: url(#starwords-grad);
+  font-size: 84px !important; 
+  font-weight: 900;
+  letter-spacing: 5px;
+  filter: drop-shadow(0 6px 15px rgba(155, 109, 255, 0.3));
+}
+
+/* 3. 副標題再度微調往上吸：達成完美的半包覆效果 */
+.arc-sub-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 3px;
+  display: block;
+  margin: 0 auto !important;
+  /* 🔍 完美黃金比例：再往上推回一點點(-55px)，讓巨大的弧形剛好在視覺上把這行字包在懷裡 */
+  transform: translateY(-55px) !important; 
+  position: relative;
+  z-index: 10;
+}
+
+/* 4. 底下段落小字間距完美對齊 */
+.hero p {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 480px;
+  margin: -2.2rem auto 2.5rem !important; /* 🔍 向上修正空間，排版清爽不重疊 */
+  line-height: 1.7;
+}
+
+/* 2. 登入面板與按鈕精緻化設計（變扁、變好看） */
+.login-btn-group {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1rem !important;
+  margin-top: 0.5rem;
+}
+
+/* 🔍 將按鈕改為扁平、精緻的長方形比例 */
+.login-btn-group .btn-lg {
+  padding: 0.65rem 1.25rem !important; /* 🔍 縮減上下內襯，讓方塊變扁 */
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important; /* 圓角微調，呼應整體輸入框 */
+  height: 46px !important; /* 🔍 嚴格鎖定完美長方形高度 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+/* 💡 「登入帳號」按鈕優化：改為精緻的紫粉漸層細邊框，看起來更高級 */
+.login-btn-group .btn-secondary {
+  background: #ffffff !important;
+  border: 1.5px solid transparent !important;
+  background-image: linear-gradient(#fff, #fff), linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+  color: var(--text) !important;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.05) !important;
+}
+
+.login-btn-group .btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(155, 109, 255, 0.15) !important;
+}
+
+/* 💡 「建立新帳號」按鈕優化：維持華麗漸層主按鈕，微調陰影 */
+.login-btn-group .btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(155, 109, 255, 0.3) !important;
+}
+
+.login-btn-group .btn-primary:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+  box-shadow: 0 6px 18px rgba(155, 109, 255, 0.45) !important;
+}
+
+
+/* ==========================================================================
+   大廳 3+1 欄位對齊樣式維持不變
+   ========================================================================== */
+.custom-lobby-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.2rem !important;
+  max-width: 720px !important;
+  margin: 0 auto;
+}
+@media (max-width: 540px) {
+  .custom-lobby-grid { grid-template-columns: 1fr !important; }
+  .custom-lobby-grid .full-row-card { grid-column: span 1 !important; }
+}
+.custom-lobby-grid .full-row-card {
+  grid-column: 1 / 4 !important;
+}
+
+/* ==========================================================================
+   ⚡ 答題大廳狂暴連擊模式（Frenzy Mode）視覺特效 ⚡
+   ========================================================================== */
+
+/* 1. 【核心改變】當連擊 >= 3 次，白底大面板邊框開始霓虹彩燈瘋狂閃爍 */
+.quiz-panel.frenzy-glow-border {
+  border-width: 2px !important;
+  /* 注入粉紫高彩度霓虹燈呼吸起動畫 */
+  animation: frenzyBorderFlash 0.8s infinite alternate cubic-bezier(0.45, 0, 0.55, 1) !important;
+}
+
+@keyframes frenzyBorderFlash {
+  0% {
+    border-color: #9b6dff !important;
+    box-shadow: 0 0 15px rgba(155, 109, 255, 0.35), inset 0 0 10px rgba(155, 109, 255, 0.1) !important;
+  }
+  100% {
+    border-color: #f472b6 !important;
+    box-shadow: 0 0 30px rgba(244, 114, 182, 0.6), inset 0 0 15px rgba(244, 114, 182, 0.2) !important;
+    transform: scale(1.005); /* 微微擴張，製造刺激的顫動感 */
+  }
+}
+
+/* 2. 【核心改變】讓上方連擊 Badge 字體變大、並有強烈的心跳律動跳動（Heartbeat） */
+.combo-badge {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  padding: 6px 18px !important;
+  transition: all 0.2s ease;
+}
+
+.combo-badge.combo-heartbeat {
+  font-size: 1.3rem !important; /* 🔍 連擊高時字體顯著放大 */
+  background: linear-gradient(135deg, #ff4500, #f472b6) !important; /* 漸層變橘紅火焰色 */
+  color: #fff !important;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
+  /* 觸發每 0.4 秒一次的強烈心跳壓縮動畫 */
+  animation: comboPulse 0.4s infinite alternate cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+@keyframes comboPulse {
+  0% { transform: scale(0.92); filter: brightness(0.9); }
+  100% { transform: scale(1.15); filter: brightness(1.3); }
+}
+
+/* 3. 【核心改變】華麗的連擊大加分彈窗畫面（擊打感爆棚） */
+.combo-award-overlay {
+  position: absolute; /* 鎖定在白面板內部居中 */
+  inset: 0;
+  background: rgba(11, 8, 28, 0.85); /* 迷幻深色背景屏蔽題目 */
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  border-radius: 20px;
+  animation: fadeInFast 0.15s ease-out forwards;
+}
+
+.combo-award-box {
+  text-align: center;
+  animation: popScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.award-fire {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  animation: fireWobble 0.3s infinite alternate ease-in-out;
+}
+
+.award-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.8rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #ff9d00, #ff0077);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 10px 20px rgba(255, 0, 119, 0.2);
+}
+
+.award-bonus {
+  font-size: 1.2rem;
+  color: #fff;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.award-bonus span {
+  display: block;
+  font-size: 1.4rem;
+  color: #ffd700; /* 亮眼金色 */
+  font-weight: 800;
+  margin-top: 4px;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* 小動畫們 */
+@keyframes fadeInFast { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popScaleIn {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes fireWobble {
+  0% { transform: rotate(-5deg) scale(0.95); }
+  100% { transform: rotate(5deg) scale(1.05); }
+}
+/* ==========================================================================
+   🎬 華麗卡包撕裂分離與光芒內斂震撼特效 🎬
+   ========================================================================== */
+.custom-slitted-pack {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* 卡包上半部彈飛 (1.5秒完成) */
+.custom-slitted-pack.is-opening .slitted-top {
+  animation: packRipTopOnly 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes packRipTopOnly {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-160px) rotate(-8deg); opacity: 0; }
+}
+
+/* 卡包下半部沉墜 (1.5秒完成) */
+.custom-slitted-pack.is-opening .slitted-bottom {
+  animation: packRipBottomOnly 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes packRipBottomOnly {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(160px) rotate(6deg); opacity: 0; }
+}
+.gacha-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #05050b;
+  opacity: 0;
+  /* 🔍 用 0.2 秒的絲滑淡入，徹底融化掉原本生硬蹦出來的方形邊緣 */
+  animation: overlayFadeIn 0.25s ease-out forwards; 
+}
+
+@keyframes overlayFadeIn {
+  to { opacity: 1; }
+}
+
+/* 2. 卡包本體外框 */
+.custom-slitted-pack {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* 3. 卡包上半部：點擊瞬間快速自然彈開 */
+.custom-slitted-pack.is-opening .slitted-top {
+  animation: packRipTopClean 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes packRipTopClean {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-140px); opacity: 0; }
+}
+
+/* 4. 卡包下半部：點擊瞬間快速自然下沉 */
+.custom-slitted-pack.is-opening .slitted-bottom {
+  animation: packRipBottomClean 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes packRipBottomClean {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(140px); opacity: 0; }
+}
+
+/* 5. 移除所有實驗性的延遲與殘留動畫，讓極光容器完美即時常駐 */
+.gacha-overlay .magic-ray-container {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  animation: none !important; /* 🔍 徹底切斷會導致卡頓的 CSS 衝突動畫 */
+}
+/* ==========================================================================
+   ✨ 個人檔案頁面（UserPage）數據紀錄四宮格極致美化 ✨
+   ========================================================================== */
+
+/* 1. 將四個方塊改成 2×2 的黃金比例網格 */
+.stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important; /* 🔍 橫向只切兩半，變成 2×2 */
+  gap: 1rem !important;
+  width: 100%;
+}
+
+/* 2. 重塑單個卡片的比例與質感（改為偏扁的現代科技方塊） */
+.stat-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(155, 109, 255, 0.12) !important; /* 🔍 帶有淡淡的主題紫細邊框 */
+  border-radius: 16px !important;
+  padding: 1.25rem 1rem !important;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(155, 109, 255, 0.03) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-  animation:card-slide-up 0.55s cubic-bezier(.34,1.56,.64,1) forwards;
 }
-.gacha-result-card.SSR { border-color:#ffd700; box-shadow:0 0 35px rgba(255,215,0,.45); }
-.gacha-result-card.SR  { border-color:#c084fc; box-shadow:0 0 30px rgba(192,132,252,.4); }
-.gacha-result-card.R   { border-color:#60a5fa; box-shadow:0 0 25px rgba(96,165,250,.35); }
-.gacha-result-card.N   { border-color:#4b5563; }
 
-.gacha-result-card .card-emoji  { font-size: 4.8rem; margin-bottom: 1rem; }
-.gacha-result-card .card-name   { font-size: 1.6rem; font-weight:800; color:#fff; margin-top:.5rem; line-height: 1.2; }
-.gacha-result-card .card-group  { font-size: 1.05rem; color:rgba(255,255,255,.6); margin-top:.3rem; text-transform: uppercase; }
-.gacha-result-card .card-rarity-badge {
-  font-size: 1rem; letter-spacing:2px; font-weight:800; margin-top: 1.2rem;
-  padding: 4px 14px; border-radius: 20px; background: rgba(255,255,255,0.05);
+/* 滑鼠滑過時有精緻的浮起微光 */
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(155, 109, 255, 0.08) !important;
+  background: #ffffff !important;
 }
-.gacha-result-card.SSR .card-rarity-badge { color:#ffd700; background: rgba(255,215,0,0.15); }
-.gacha-result-card.SR  .card-rarity-badge { color:#c084fc; background: rgba(192,132,252,0.15); }
-.gacha-result-card.R   .card-rarity-badge { color:#60a5fa; background: rgba(96,165,250,0.15); }
-.gacha-result-card.N   .card-rarity-badge { color:#9ca3af; }
 
-.gacha-confirm-btn {
-  margin-top: 3.5rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color:#fff; border:none; border-radius:30px;
-  padding: 1rem 3.5rem; font-size: 1.2rem; font-weight:700;
-  cursor:pointer; letter-spacing:2px;
-  box-shadow:0 6px 28px rgba(155,109,255,.5);
-  transition:transform .15s, box-shadow .15s;
+/* 3. 數據數字：放大、加粗，並染上招牌紫粉色 */
+.stat-num {
+  font-size: 2.2rem !important; /* 🔍 字體霸氣放大，更有成就感 */
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  margin-bottom: 0.4rem !important;
+  font-family: 'SF Pro Display', -apple-system, sans-serif;
+  letter-spacing: -0.5px;
 }
-.gacha-confirm-btn:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 10px 35px rgba(155,109,255,.65); }
+
+/* 幫不同的卡片客製化專屬的漸層霓虹色調 */
+.stat-card:nth-child(1) .stat-num { color: #22c55e !important; } /* 答對：生動綠 */
+.stat-card:nth-child(2) .stat-num { color: #ef4444 !important; } /* 答錯：警示紅 */
+.stat-card:nth-child(3) .stat-num { color: #9b6dff !important; } /* 正確率：極光紫 */
+.stat-card:nth-child(4) .stat-num { color: #eab308 !important; } /* 點數：閃耀金 */
+
+/* 4. 下方文字標籤：改為內斂、高質感的灰色，與數字拉開層次 */
+.stat-label {
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  color: var(--muted) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}

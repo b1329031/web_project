@@ -24,6 +24,7 @@ export default function VocabPage() {
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!username) return;
     fetchUser(username).then(u => setNavPoints(u.points)).catch(() => {});
   }, []);

@@ -24,8 +24,9 @@ export default function GachaPage() {
   );
   const [navPoints, setNavPoints] = useState(0);
 
-  const [phase, setPhase] = useState('idle'); 
+  const [phase, setPhase] = useState('idle'); // idle | flash | dark | rarity | cards | result
   const [drawnCards, setDrawnCards] = useState([]);
+  const [drawnPhotos, setDrawnPhotos] = useState([]); // 朋友新增：儲存抽到的偶像圖片路徑
   const [visibleCount, setVisibleCount] = useState(0);
   const [topRarity, setTopRarity] = useState('N');
   const [toast, setToast] = useState({ message: '', type: '' });
@@ -33,11 +34,12 @@ export default function GachaPage() {
   const toastTimer = useRef(null);
   const timers = useRef([]);
 
-  // 🎵 定義音效的 Ref 控制器
+  // 🎵 你新增的音效控制器 Ref
   const audioOpen = useRef(null);
   const audioReveal = useRef(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     // 初始化音效對象
     audioOpen.current = new Audio('/gacha_open.mp3');
     audioReveal.current = new Audio('/gacha_reveal.mp3');
@@ -79,6 +81,15 @@ export default function GachaPage() {
       setDrawnCards(data.cards);
       setTopRarity(bestRarityOf(data.cards));
 
+      // 朋友新寫的：IU 特別照片隨機抽卡邏輯與一般偶像相片綁定
+      const card0 = data.cards[0];
+      if (card0 && card0.group === 'IU') {
+        const nums = [1, 2, 3, 4, 5].sort(() => Math.random() - 0.5).slice(0, 3);
+        setDrawnPhotos(nums.map(n => `/images/iu${n}_1.jpg`));
+      } else {
+        setDrawnPhotos(data.cards.map((card, i) => `/images/${card.card_id}_${i + 1}.jpg`));
+      }
+
       const newHistory = [...data.cards.map(c => c.card_id), ...history].slice(0, 60);
       setHistory(newHistory);
       localStorage.setItem(`sw_history_${username}`, JSON.stringify(newHistory));
@@ -86,26 +97,31 @@ export default function GachaPage() {
       timers.current.forEach(clearTimeout);
       timers.current = [];
 
-      // 🎬 啟動全新魔幻震撼抽卡劇場軸
       setPhase('flash');
       
-      // 🎵 播放開包爆發音效
+      // 🎵 播放開包爆發音效（點擊時立刻放，模擬撕開包裝紙的聲音）
       if (audioOpen.current) {
         audioOpen.current.currentTime = 0;
         audioOpen.current.play().catch(() => {});
       }
 
-      // 將光芒四散、流動絲帶的演出時間拉長至 2.2 秒（原為 1.4 秒），極致拉滿未知感！
-      schedule(() => setPhase('dark'), 2200);
+      /* 🔍 【分鏡時間軸微調】
+         0.0s ~ 1.5s: 純卡包慢動作分離
+         0.8s ~ 3.5s: 降臨強光與極光爆發演出
+         3.5s: 進入暗場
+         4.0s: 秀出 SSR/SR 等級大字
+         5.5s: 依序翻開小卡
+      */
+      
+      schedule(() => setPhase('dark'), 2200); // 讓極光多燃燒一會兒 (原為 3200)
       
       schedule(() => {
         setPhase('rarity');
-        // 🎵 當巨大的 Bling Bling 等級噴出來時，播放驚喜揭曉音效
         if (audioReveal.current) {
           audioReveal.current.currentTime = 0;
           audioReveal.current.play().catch(() => {});
         }
-      }, 2700);
+      }, 2700); // 等級揭曉往後順延 (原為 3700)
 
       schedule(() => {
         setPhase('cards');
@@ -114,7 +130,8 @@ export default function GachaPage() {
         schedule(() => setVisibleCount(2), 850);
         schedule(() => setVisibleCount(3), 1550);
         schedule(() => setPhase('result'), 2400);
-      }, 4200);
+      }, 4200); // 最終秀卡網後順延 (原為 5200)
+
     } catch {
       showToast('連線失敗', 'error');
     }
@@ -136,7 +153,7 @@ export default function GachaPage() {
 
       {showOverlay && (
         <div className={`gacha-overlay phase-${phase}`}>
-          {/* ✨ 【全新改變】粉紫漸變極光絲帶與中央裂縫四散的白色璀璨神聖光芒 */}
+          {/* ✨ 你寫的粉紫極光與白色璀璨光芒四散效果 */}
           {phase === 'flash' && (
             <div className="magic-ray-container">
               <div className="center-white-core"></div>
@@ -158,16 +175,30 @@ export default function GachaPage() {
           {(phase === 'cards' || phase === 'result') && (
             <>
               <div className={`gacha-top-rarity ${topRarity} bling-bling-${topRarity.toLowerCase()}`}>{topRarity}</div>
+              
+              {/* 融合你改的大尺寸樣式 `dynamic-cards-view` 與朋友的相片卡牌 HTML */}
               <div className="gacha-cards-row dynamic-cards-view">
                 {drawnCards.slice(0, visibleCount).map((card, i) => (
                   <div key={i} className={`gacha-result-card ${card.rarity} large-result-card`}>
-                    <div className="card-emoji">{card.emoji}</div>
+                    <div className="card-photo-slot" style={{ width: '100%', borderRadius: '12px', overflow: 'hidden', marginBottom: '10px' }}>
+                      <img
+                        src={drawnPhotos[i] || `/images/${card.card_id}_${i + 1}.jpg`}
+                        alt={card.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { 
+                          e.target.style.display = 'none'; 
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = 'block'; 
+                        }}
+                      />
+                      <span className="card-emoji-fallback" style={{ display: 'none', fontSize: '3rem', padding: '1rem 0' }}>{card.emoji}</span>
+                    </div>
                     <div className="card-name">{card.name}</div>
                     <div className="card-group">{card.group}</div>
                     <div className="card-rarity-badge">{card.rarity}</div>
                   </div>
                 ))}
               </div>
+
               {phase === 'result' && (
                 <button className="gacha-confirm-btn enhanced-confirm-btn" onClick={confirmCards}>
                   收入至卡冊 ✦
@@ -186,6 +217,7 @@ export default function GachaPage() {
             </div>
           </div>
 
+          {/* 套用你寫的修長型長方形卡包 HTML 與動畫類名 */}
           <div className="blind-box-wrap enhanced-pack-wrap">
             <div
               className={`blind-box custom-slitted-pack ${phase !== 'idle' ? 'is-opening' : ''}`}
@@ -234,10 +266,16 @@ export default function GachaPage() {
                 {history.slice(0, 18).map((id, idx) => {
                   const c = allCards.find(x => x.card_id === id);
                   if (!c) return null;
+                  
+                  // 朋友新寫的：抽取紀錄改為正確對應隨機相片路徑
+                  const photoSrc = c.group === 'IU'
+                    ? `/images/iu${(idx % 5) + 1}_1.jpg`
+                    : `/images/${id}_(idx % 3) + 1}.jpg`;
+                  
                   return (
                     <div key={idx} className="mini-card">
                       <img
-                        src={`/images/${id}_1.jpg`}
+                        src={photoSrc}
                         alt={c.name}
                         onError={e => { e.target.style.display = 'none'; }}
                       />

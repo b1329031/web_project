@@ -40,6 +40,7 @@ export default function UserPage() {
   );
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (!username) { navigate('/'); return; }
     fetchUser(username)
       .then(u => {
@@ -147,14 +148,14 @@ export default function UserPage() {
           </div>
 
           {/* 答題紀錄 */}
-          <div className="panel">
+          <div className="panel" style={{ marginTop: '1.5rem' }}>
             <div className="section-title" style={{ marginBottom: '1.25rem' }}>答題紀錄</div>
             <div className="stats-grid">
               {[
-                { val: user?.correct ?? '—', label: '✅ 答對次數' },
-                { val: user?.wrong ?? '—', label: '❌ 答錯次數' },
-                { val: acc, label: '📊 正確率' },
-                { val: user?.points ?? '—', label: '⭐ 剩餘點數' },
+                { val: user?.correct ?? '—', label: '✅答對次數' },
+                { val: user?.wrong ?? '—', label: '❌答錯次數' },
+                { val: acc, label: '📊整體正確率' },
+                { val: user?.points ?? '—', label: '⭐剩餘點數' },
               ].map(({ val, label }) => (
                 <div key={label} className="stat-card">
                   <div className="stat-num">{val}</div>
