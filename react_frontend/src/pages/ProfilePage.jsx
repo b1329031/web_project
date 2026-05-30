@@ -130,7 +130,15 @@ export default function ProfilePage() {
       {modalCard && (
         <div className="modal-overlay show" onClick={e => { if (e.target.classList.contains('modal-overlay')) setModalCard(null); }}>
           <div className={`modal-box rarity-${modalCard.rarity}`}>
-            <PhotoCarousel cardId={modalCard.card_id} emoji={modalCard.emoji} />
+            <PhotoCarousel
+              cardId={modalCard.card_id}
+              emoji={modalCard.emoji}
+              photos={modalCard.group === 'IU'
+                ? (modalCard.rarity === 'SSR'
+                    ? ['/images/iu1_1.jpg', '/images/iu2_1.jpg', '/images/iu3_1.jpg']
+                    : ['/images/iu4_1.jpg', '/images/iu5_1.jpg', '/images/iu6_1.jpg'])
+                : null}
+            />
             <div className="idol-info" style={{ padding: '1rem 1.25rem 1.25rem' }}>
               <div className="idol-name">{modalCard.name}</div>
               <div className="idol-group" style={{ fontSize: '.85rem', color: 'var(--muted)', marginBottom: '.5rem' }}>{modalCard.group}</div>

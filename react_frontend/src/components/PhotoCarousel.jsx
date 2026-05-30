@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-export default function PhotoCarousel({ cardId, emoji }) {
+export default function PhotoCarousel({ cardId, emoji, photos }) {
   const [idx, setIdx] = useState(0);
   const [failed, setFailed] = useState([false, false, false]);
 
-  const total = 3;
+  const srcList = photos || [`/images/${cardId}_1.jpg`, `/images/${cardId}_2.jpg`, `/images/${cardId}_3.jpg`];
+  const total = srcList.length;
 
   function handleError(i) {
     setFailed(prev => {
@@ -25,13 +26,13 @@ export default function PhotoCarousel({ cardId, emoji }) {
 
   return (
     <div className="card-photo-wrap">
-      {[1, 2, 3].map((n, i) => (
+      {srcList.map((src, i) => (
         failed[i] ? null : (
           <img
-            key={n}
+            key={i}
             alt=""
             className={i === idx ? 'active' : ''}
-            src={`/images/${cardId}_${n}.jpg`}
+            src={src}
             onError={() => handleError(i)}
           />
         )
