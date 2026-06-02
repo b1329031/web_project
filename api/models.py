@@ -1,6 +1,7 @@
 from django.db import models
 
 
+# 單字資料表：儲存中文、英文對應和詞性
 class Word(models.Model):
     POS_CHOICES = [('n.', 'Noun'), ('v.', 'Verb'), ('adj.', 'Adjective'), ('adv.', 'Adverb')]
     chinese = models.CharField(max_length=20)
@@ -11,6 +12,7 @@ class Word(models.Model):
         return f"{self.chinese} / {self.english} ({self.part_of_speech})"
 
 
+# 偶像卡片資料表：每張卡有稀有度（SSR/SR/R/N）、所屬團體、emoji 和名言
 class Card(models.Model):
     RARITY_CHOICES = [('SSR', 'SSR'), ('SR', 'SR'), ('R', 'R'), ('N', 'N')]
     card_id = models.CharField(max_length=20, unique=True)
@@ -24,6 +26,8 @@ class Card(models.Model):
         return f"{self.group} - {self.name} ({self.rarity})"
 
 
+# 使用者資料表：記錄答題成績、點數、已收集的卡片清單
+# collection 用 JSONField 儲存 card_id 的陣列，不需要額外關聯表
 class UserRecord(models.Model):
     username = models.CharField(max_length=30, unique=True)
     points = models.IntegerField(default=0)

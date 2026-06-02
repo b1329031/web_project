@@ -4,6 +4,7 @@ import { getUsername, fetchUser, API } from '../utils/state';
 import Nav from '../components/Nav';
 import Toast from '../components/Toast';
 
+// Fisher-Yates 洗牌演算法：讓每次題目順序都不一樣
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -93,6 +94,7 @@ export default function QuizPage() {
     }
   }, [combo, showComboAward]);
 
+  // 將每次答題結果存進 localStorage，最多保留 300 筆，供詞彙紀錄頁查閱
   function saveVocabLog(word, isCorrect) {
     const key = `sw_vocab_log_${username}`;
     const log = JSON.parse(localStorage.getItem(key) || '[]');
@@ -144,6 +146,7 @@ export default function QuizPage() {
   const currentWord = words.length ? words[curIdx % words.length] : null;
   const progress = words.length ? (answeredSet.size / words.length) * 100 : 0;
 
+  // 送出答案：比對輸入值與正確答案，更新連擊數，並呼叫後端記錄分數
   async function submitAnswer() {
     if (!currentWord || !inputVal.trim()) return;
     const ans = inputVal.trim().toLowerCase();
