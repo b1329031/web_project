@@ -39,17 +39,3 @@ class UserRecord(models.Model):
 
     def __str__(self):
         return self.username
-    
-# starwords/settings.py
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    
-    # ✨ 【關鍵補上】把你們自己寫的後端 App 資料夾名稱加進來！
-    'api',  # 💡 如果你的資料夾叫 words，這裡就填 'words'
-]
