@@ -1,5 +1,5 @@
 // Django 後端 API 的根路徑
-export const API = 'http://127.0.0.1:8000/api';
+export const API = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api';
 
 // 將登入帳號寫入瀏覽器 Cookie，days 決定有效天數
 export function setCookie(name, value, days) {
